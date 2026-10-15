@@ -1,0 +1,106 @@
+<!doctype html>
+<!--
+  Cover page for a web game, like a simple itch.io page: the game first,
+  then its description, controls, screenshots and history. Shared by Kurban
+  Bayrami and Time Escape: kept in https://github.com/eralpkaraduman/kurban-bayrami
+  (port/web/), and Time Escape downloads it from there at a pinned commit.
+
+  CMake fills in each placeholder, a name between two at signs, with
+  configure_file(... @ONLY):
+    WEB_TITLE                 game title
+    SITE_TAGLINE              one-line description
+    SITE_URL                  the page's public address, for link previews
+    SITE_THEME                CSS colour variables: --bg, --surface, --text, --muted,
+                              --accent, --accent-strong, --border
+    SITE_GAME_RATIO           game width / height, e.g. 3 / 1
+    SITE_TOUCH_FRAME_HEIGHT   CSS height of the game frame on touch screens:
+                              the game plus its control bar
+    SITE_HINT_KEYBOARD        hint under the game for keyboard players (HTML)
+    SITE_HINT_TOUCH           hint under the game for touch players (HTML)
+    SITE_CONTENT              everything below the game (HTML), read from the
+                              game's web/site-content.html
+  The page expects cover.png, fonts/system.ttf, screenshots/ and the game in play/.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@WEB_TITLE@</title>
+<meta name="description" content="@SITE_TAGLINE@">
+<meta property="og:title" content="@WEB_TITLE@">
+<meta property="og:description" content="@SITE_TAGLINE@">
+<meta property="og:image" content="@SITE_URL@cover.png">
+<link rel="icon" href="cover.png">
+<style>
+  @font-face { font-family: "Flixel System"; src: url("fonts/system.ttf"); }
+  :root { @SITE_THEME@ }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  img { image-rendering: pixelated; display: block; max-width: 100%; height: auto; }
+  a { color: var(--accent); }
+  /* One centred column, never the full width. Its 720 px inside width shows
+     a 360 px wide game at exactly 2x and a 240 px wide game at exactly 3x. */
+  .page { max-width: 760px; margin: 0 auto; padding: 40px 20px 64px; }
+  .pixel { font-family: "Flixel System", monospace; -webkit-font-smoothing: none; font-weight: normal; }
+  h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px; color: #fff; }
+  .tagline { color: var(--muted); margin: 0 0 24px; }
+  /* The outline sits outside the frame, so the frame keeps its full 720 px. */
+  .game { background: #000; box-shadow: 0 0 0 1px var(--border); border-radius: 8px; overflow: hidden; }
+  .game iframe { display: block; width: 100%; aspect-ratio: @SITE_GAME_RATIO@; border: 0; }
+  .game-bar { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--surface); color: var(--muted); font-size: 14px; }
+  .button { display: inline-block; padding: 6px 14px; border-radius: 6px; background: var(--accent); color: #0b1218; text-decoration: none; font-weight: 600; }
+  article { margin-top: 40px; }
+  h2 { font-size: 16px; margin: 36px 0 8px; color: var(--accent-strong); text-transform: uppercase; letter-spacing: 0.05em; }
+  article > h2:first-child { margin-top: 0; }
+  p, ol, ul { margin: 0 0 12px; }
+  li { margin-bottom: 4px; }
+  .controls { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+  .controls dt { font-weight: 600; }
+  .controls dd { margin: 0; color: var(--muted); }
+  kbd { display: inline-block; min-width: 1.6em; padding: 0 6px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: var(--surface); font: 13px/1.6 ui-monospace, monospace; text-align: center; }
+  .shots { display: grid; gap: 16px; margin-top: 8px; }
+  .shots.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shots img { border-radius: 6px; border: 1px solid var(--border); width: 100%; }
+  .note { font-size: 14px; color: var(--muted); }
+  /* "More information", like the table at the end of an itch.io page. */
+  .info { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .info th, .info td { padding: 8px 0; border-top: 1px solid var(--border); text-align: left; vertical-align: top; }
+  .info th { width: 140px; color: var(--muted); font-weight: 500; }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  .hint-touch { display: none; }
+  @media (max-width: 600px) {
+    .page { padding: 32px 16px 56px; }
+    .shots.two { grid-template-columns: 1fr; }
+    h1 { font-size: 24px; }
+  }
+  /* Touch screens: the game and its control bar run edge to edge, and the
+     frame holds the game plus the bar. The text below scrolls normally. */
+  @media (pointer: coarse) {
+    .game { margin: 0 -16px; box-shadow: none; border-radius: 0; }
+    .game iframe { aspect-ratio: auto; height: @SITE_TOUCH_FRAME_HEIGHT@; }
+    .hint-keyboard { display: none; }
+    .hint-touch { display: inline; }
+    p.hint-touch { display: block; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <h1 class="pixel">@WEB_TITLE@</h1>
+  <p class="tagline">@SITE_TAGLINE@</p>
+
+  <section class="game" aria-label="Play the game">
+    <iframe src="play/" title="@WEB_TITLE@, playable game"></iframe>
+    <div class="game-bar">
+      <span class="hint-keyboard">@SITE_HINT_KEYBOARD@</span>
+      <span class="hint-touch">@SITE_HINT_TOUCH@</span>
+      <a class="button" href="play/">Play full screen</a>
+    </div>
+  </section>
+
+  <article>
+@SITE_CONTENT@
+  </article>
+</main>
+</body>
+</html>

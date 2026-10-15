@@ -32,6 +32,23 @@ if(EMSCRIPTEN)
     set(WEB_TOUCH_BUTTONS "[{ label: 'X', caption: 'Jump', key: 88 }, { label: 'C', caption: 'Carry', key: 67 }]")
     configure_file("${WEB_DIR}/shell.html.in" "${CMAKE_BINARY_DIR}/shell.html" @ONLY)
 
+    # The GitHub Pages cover page: the same kind of shared template. The
+    # page text comes from web/site-content.html.
+    set(SITE_TAGLINE "Herd sheep across town to the pit before the feast. My Ludum Dare 21 warm-up from 2011, rebuilt in C.")
+    set(SITE_URL "https://eralpkaraduman.github.io/kurban-bayrami/")
+    set(SITE_THEME "--bg: #12171c; --surface: #1b232b; --text: #e6edf2; --muted: #9aa8b4; --accent: #73add2; --accent-strong: #9fd06b; --border: #2b3742;")
+    set(SITE_GAME_RATIO "3 / 1")
+    # On touch screens the game frame holds the game at full width plus the
+    # control bar. The frame is wider than tall, so the bar sizes its buttons
+    # by the frame height, which keeps the D-pad at its 44 px minimum:
+    # 3 cells plus 40 px of padding.
+    set(SITE_TOUCH_FRAME_HEIGHT "calc(100vw / 3 + 3 * 44px + 42px)")
+    set(SITE_HINT_KEYBOARD "Click the game, then press <kbd>X</kbd> to start. You need a keyboard.")
+    set(SITE_HINT_TOUCH "Tap <b>X</b> to start. Play with the buttons under the game.")
+    file(READ "${CMAKE_SOURCE_DIR}/web/site-content.html" SITE_CONTENT)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/web/site-content.html")
+    configure_file("${WEB_DIR}/site.html.in" "${CMAKE_BINARY_DIR}/site.html" @ONLY)
+
     target_compile_definitions(kurban PRIVATE PLATFORM_WEB)
     # itch.io wants index.html at the root of the uploaded zip.
     set_target_properties(kurban PROPERTIES OUTPUT_NAME "index" SUFFIX ".html")
@@ -63,7 +80,7 @@ if(EMSCRIPTEN)
     add_custom_target(pages
         COMMAND ${CMAKE_COMMAND} -E rm -rf "${PAGES_DIR}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${PAGES_DIR}/play" "${PAGES_DIR}/fonts"
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/web/site.html" "${PAGES_DIR}/index.html"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/site.html" "${PAGES_DIR}/index.html"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/kurban-cover-630x500.png" "${PAGES_DIR}/cover.png"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/screenshots" "${PAGES_DIR}/screenshots"
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/assets/system.ttf" "${PAGES_DIR}/fonts/system.ttf"

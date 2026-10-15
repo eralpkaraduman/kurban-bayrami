@@ -4,7 +4,8 @@
   Bayrami and Time Escape: kept in https://github.com/eralpkaraduman/kurban-bayrami
   (port/web/), and Time Escape downloads it from there at a pinned commit.
 
-  CMake fills in the @...@ values with configure_file(... @ONLY):
+  CMake fills in each placeholder, a name between two at signs, with
+  configure_file(... @ONLY):
     WEB_TITLE          page title
     WEB_TOUCH_DPAD     D-pad keys, e.g. { left: 263, right: 262 }
     WEB_TOUCH_BUTTONS  round buttons, e.g. [{ label: 'X', caption: 'Jump', key: 88 }]

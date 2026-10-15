@@ -16,7 +16,7 @@ Arrow keys move, X jumps, and holding C near a sheep carries it.
 - `assets/`: sprites, tiles and Tiled maps taken from the original SWF.
 - `web/shell.html.in`: the web page around the game. CMake fills in the title and the touch keys.
 - `web/touch-controls.js`, `web/touch-controls.css`: on-screen controls for touch screens, and the canvas scaling.
-- `web/site.html`: the GitHub Pages cover page.
+- `web/site.html.in`, `web/site-content.html`: the GitHub Pages cover page. The template is shared, and the content file holds this game's text.
 
 ## Web page and touch controls
 
@@ -26,7 +26,9 @@ With a keyboard, the bar stays hidden. Add `?touch=1` to the address to test the
 
 The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard.
 
-Time Escape uses the same page and controls. Its CMake file downloads `shell.html.in` and the two `touch-controls` files from this repo at a pinned commit, and checks their SHA-256 hashes.
+Both pages are templates. CMake fills in each placeholder, a name between two at signs, from variables set in `CMakeLists.txt`: the title, tagline, colours, game shape and touch keys. The cover page's text comes from `web/site-content.html`.
+
+Time Escape uses the same templates and controls. Its CMake file downloads `shell.html.in`, `site.html.in` and the two `touch-controls` files from this repo at a pinned commit, and checks their SHA-256 hashes.
 After changing them here, update the commit and hashes in Time Escape's `CMakeLists.txt`.
 
 ## Build
