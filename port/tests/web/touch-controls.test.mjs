@@ -160,6 +160,24 @@ test('touch mode: a held key is released when the page loses focus', async () =>
   await page.close();
 });
 
+test('touch mode: touch starts are cancelled, so iOS cannot swipe the page away', async () => {
+  const page = await openPage('', KnownDevices['iPhone 13']);
+  // Listen last, after the page's own handlers, and record what they did.
+  await page.evaluate(() => {
+    window.touchStarts = [];
+    window.addEventListener('touchstart', e => window.touchStarts.push(e.defaultPrevented));
+  });
+  const { centre, send } = await touchAt(page);
+  await send('touchStart', [{ x: 2, y: 400, id: 1 }]);            // at the left edge, outside the buttons
+  await send('touchEnd', []);
+  await send('touchStart', [{ ...(await centre(88)), id: 1 }]);   // on a button
+  await send('touchEnd', []);
+  assert.deepEqual(await page.evaluate(() => window.touchStarts), [true, true]);
+  // The button still works, since the bar listens to pointer events.
+  assert.deepEqual(await page.evaluate(() => window.keys), ['88 down', '88 up']);
+  await page.close();
+});
+
 test('touch mode: double-tap does not zoom the page', async () => {
   const page = await openPage('', KnownDevices['iPhone 13']);
   const { send } = await touchAt(page);
