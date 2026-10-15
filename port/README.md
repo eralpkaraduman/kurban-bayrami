@@ -14,6 +14,20 @@ Arrow keys move, X jumps, and holding C near a sheep carries it.
 - `src/main.c`: window, fixed 60 Hz loop, and pixel-perfect scaling.
 - `tests/check.c`: logic checks that run without a window.
 - `assets/`: sprites, tiles and Tiled maps taken from the original SWF.
+- `web/shell.html.in`: the web page around the game. CMake fills in the title and the touch keys.
+- `web/touch-controls.js`, `web/touch-controls.css`: on-screen controls for touch screens, and the canvas scaling.
+- `web/site.html`: the GitHub Pages cover page.
+
+## Web page and touch controls
+
+On a touch screen, a control bar sits under the game: a D-pad, X to jump and C to carry.
+The game fills the screen width, and the page never zooms or scrolls.
+With a keyboard, the bar stays hidden. Add `?touch=1` to the address to test the touch layout on a desktop.
+
+The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard.
+
+Time Escape uses the same page and controls. Its CMake file downloads `shell.html.in` and the two `touch-controls` files from this repo at a pinned commit, and checks their SHA-256 hashes.
+After changing them here, update the commit and hashes in Time Escape's `CMakeLists.txt`.
 
 ## Build
 

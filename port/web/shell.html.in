@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  Web page around a raylib game built with Emscripten. Shared by Kurban
+  Bayrami and Time Escape: kept in https://github.com/eralpkaraduman/kurban-bayrami
+  (port/web/), and Time Escape downloads it from there at a pinned commit.
+
+  CMake fills in the @...@ values with configure_file(... @ONLY):
+    WEB_TITLE          page title
+    WEB_TOUCH_DPAD     D-pad keys, e.g. { left: 263, right: 262 }
+    WEB_TOUCH_BUTTONS  round buttons, e.g. [{ label: 'X', caption: 'Jump', key: 88 }]
+  Key codes are raylib's. The game must export flx_touch_key(key, down).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- No zooming, and use the whole screen, notch included. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<!-- Launch full screen when added to the home screen. -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<title>@WEB_TITLE@</title>
+<link rel="stylesheet" href="touch-controls.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  #frame { display: flex; flex-direction: column; align-items: center; }
+  /* Scale up without smoothing so the pixel art stays sharp on any screen. */
+  canvas { display: block; image-rendering: pixelated; outline: none; }
+</style>
+</head>
+<body>
+<div id="frame">
+  <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+</div>
+<script src="touch-controls.js"></script>
+<script>
+  var canvas = document.getElementById('canvas');
+
+  // Touch controls under the game on touch screens, and the canvas scaling.
+  var controls = TouchControls.setup({
+    canvas: canvas,
+    frame: document.getElementById('frame'),
+    dpad: @WEB_TOUCH_DPAD@,
+    buttons: @WEB_TOUCH_BUTTONS@,
+    onKey: function (key, down) {
+      if (Module._flx_touch_key) Module._flx_touch_key(key, down ? 1 : 0);
+    },
+  });
+  var Module = { canvas: canvas, postRun: [controls.fit] };
+
+  // itch.io embeds the game in an iframe. Keyboard input needs focus there.
+  window.addEventListener('load', function () { window.focus(); canvas.focus(); });
+  canvas.addEventListener('mousedown', function () { window.focus(); canvas.focus(); });
+  // Keep arrow keys and space from scrolling the itch.io page.
+  window.addEventListener('keydown', function (e) {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].indexOf(e.key) >= 0) e.preventDefault();
+  });
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

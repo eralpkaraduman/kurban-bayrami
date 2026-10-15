@@ -2,6 +2,9 @@
 
 #include <math.h>
 #include <stdio.h>
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/emscripten.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -324,6 +327,25 @@ float flx_random(void)
 
 static bool pressed[KEY_SLOTS];
 static bool released[KEY_SLOTS];
+static bool touchDown[KEY_SLOTS];
+
+// Touch events arrive between frames, so they latch presses and releases
+// just like the keyboard does in flx_input_poll.
+#if defined(__EMSCRIPTEN__)
+EMSCRIPTEN_KEEPALIVE
+#endif
+void flx_touch_key(int key, bool down)
+{
+    if (key < 0 || key >= KEY_SLOTS || touchDown[key] == down) return;
+    touchDown[key] = down;
+    if (down) pressed[key] = true;
+    else released[key] = true;
+}
+
+bool flx_key_down(int key)
+{
+    return IsKeyDown(key) || touchDown[key];
+}
 
 void flx_input_poll(void)
 {

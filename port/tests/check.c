@@ -87,6 +87,23 @@ int main(void)
     assert(flx_tmx_object(rage, "DropZone", &drop));
     assert(drop.width == 357 && drop.height == 56);
 
+    // Touch buttons act like keys: a press and a release each latch once,
+    // and the key reads as held in between. Repeated events are ignored.
+    flx_input_clear();
+    flx_touch_key(KEY_X, true);
+    flx_touch_key(KEY_X, true);
+    assert(flx_key_pressed(KEY_X) && flx_key_down(KEY_X) && !flx_key_released(KEY_X));
+    flx_input_clear();
+    assert(!flx_key_pressed(KEY_X) && flx_key_down(KEY_X));
+    flx_touch_key(KEY_X, false);
+    assert(flx_key_released(KEY_X) && !flx_key_down(KEY_X));
+    flx_input_clear();
+    // A tap shorter than one frame still counts as a press.
+    flx_touch_key(KEY_C, true);
+    flx_touch_key(KEY_C, false);
+    assert(flx_key_pressed(KEY_C) && flx_key_released(KEY_C) && !flx_key_down(KEY_C));
+    flx_input_clear();
+
     UnloadFileText(rage);
     UnloadFileText(tmx);
     flx_tilemap_unload(&map);

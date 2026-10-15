@@ -52,18 +52,18 @@ HaciExit haci_update(Haci *h)
     flx_sprite_save_position(s);
     s->acceleration.x = 0;
 
-    if (IsKeyDown(KEY_LEFT)) {
+    if (flx_key_down(KEY_LEFT)) {
         s->velocity.x -= HACI_SPEED_X;
         s->facing = FLX_LEFT;
-    } else if (IsKeyDown(KEY_RIGHT)) {
+    } else if (flx_key_down(KEY_RIGHT)) {
         s->velocity.x += HACI_SPEED_X;
         s->facing = FLX_RIGHT;
     }
 
-    if (IsKeyDown(KEY_UP) && h->canClimb) {
+    if (flx_key_down(KEY_UP) && h->canClimb) {
         h->airJumping = false;
         s->y -= HACI_CLIMB_SPEED;
-    } else if (IsKeyDown(KEY_DOWN) && h->canClimb) {
+    } else if (flx_key_down(KEY_DOWN) && h->canClimb) {
         h->airJumping = false;
         s->y += HACI_CLIMB_SPEED;
     }

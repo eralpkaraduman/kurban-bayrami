@@ -76,7 +76,7 @@ static Rectangle tmx_object(const char *name)
 
 static void catch_overlapping_sheep(void)
 {
-    if (!IsKeyDown(KEY_C) || state.haci.caughtSomething) return;
+    if (!flx_key_down(KEY_C) || state.haci.caughtSomething) return;
     for (int i = 0; i < state.koyunCount; i++) {
         if (flx_overlaps(&state.haci.sprite, &state.koyunlar[i].sprite)) {
             koyun_caught(&state.koyunlar[i], &state.haci);
