@@ -87,6 +87,22 @@ Logic checks run from this folder:
 ./build/kurban_check
 ```
 
+## Web frame tests
+
+`tests/web/` tests the shared web files in `web/`. They need CMake, Node.js 18 or newer, and Google Chrome.
+
+```sh
+cd tests/web
+npm install
+npm test
+```
+
+- `templates.test.mjs` fills both templates through CMake's `configure_file`, as the game builds do, and checks that every value lands in the right place.
+- `touch-controls.test.mjs` renders the game page with a stub in place of the game, then drives it in headless Chrome. It checks keyboard and touch layouts, the configured buttons, presses, two fingers at once, sliding between buttons, release on focus loss, and that double-tap does not zoom.
+
+Set `CHROME_PATH` if Chrome is not in the default macOS location.
+Run these tests after changing `web/`, since Time Escape takes these files from this repo's `main` branch.
+
 ## Code checks
 
 These tools are deterministic: the same code gives the same result every run.

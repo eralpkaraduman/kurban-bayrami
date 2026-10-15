@@ -1,0 +1,12 @@
+{
+  "name": "web-frame-tests",
+  "private": true,
+  "description": "Tests for the shared web page templates and touch controls in ../../web/",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "puppeteer-core": "24.43.1"
+  }
+}

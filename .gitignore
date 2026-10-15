@@ -9,3 +9,6 @@ port/build/
 port/build-web/
 port/build-asan/
 port/compile_commands.json
+
+# Installed by npm for the web frame tests.
+port/tests/web/node_modules/
