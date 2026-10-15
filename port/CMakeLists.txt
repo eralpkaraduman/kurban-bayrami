@@ -62,7 +62,10 @@ if(EMSCRIPTEN)
         --preload-file ${CMAKE_SOURCE_DIR}/assets@assets
         --shell-file ${CMAKE_BINARY_DIR}/shell.html)
     # Relink when the page changes, and put the touch controls beside it.
-    set_target_properties(kurban PROPERTIES LINK_DEPENDS "${CMAKE_BINARY_DIR}/shell.html")
+    # Listing the touch-control files here makes a change to only them still
+    # rerun the link, and with it the copy below.
+    set_target_properties(kurban PROPERTIES LINK_DEPENDS
+        "${CMAKE_BINARY_DIR}/shell.html;${WEB_DIR}/touch-controls.js;${WEB_DIR}/touch-controls.css")
     add_custom_command(TARGET kurban POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             "${WEB_DIR}/touch-controls.js" "${WEB_DIR}/touch-controls.css"

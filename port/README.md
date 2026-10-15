@@ -28,8 +28,8 @@ The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as th
 
 Both pages are templates. CMake fills in each placeholder, a name between two at signs, from variables set in `CMakeLists.txt`: the title, tagline, colours, game shape and touch keys. The cover page's text comes from `web/site-content.html`.
 
-Time Escape uses the same templates and controls. Its CMake file downloads `shell.html.in`, `site.html.in` and the two `touch-controls` files from this repo at a pinned commit, and checks their SHA-256 hashes.
-After changing them here, update the commit and hashes in Time Escape's `CMakeLists.txt`.
+Time Escape uses the same templates and controls. On every configure, its CMake file downloads `shell.html.in`, `site.html.in` and the two `touch-controls` files from this repo's `main` branch.
+A change pushed here reaches Time Escape on its next configure, so test both games after changing these files.
 
 ## Build
 
