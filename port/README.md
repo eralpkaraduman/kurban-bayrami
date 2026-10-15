@@ -1,0 +1,90 @@
+# Kurban Bayrami: The Gathering (C port)
+
+A C rewrite of the 2011 Flash game, built on raylib 6.0.
+raylib is vendored in `vendor/raylib`, so builds need no network.
+
+Bring sheep to the pit in the leftmost screen.
+Arrow keys move, X jumps, and holding C near a sheep carries it.
+
+## Layout
+
+- `src/flx.c`, `src/flx.h`: a small Flixel-style layer with sprites, motion, animation, tilemaps and collision.
+- `src/actors.c`: the player (Haci) and the sheep (Koyun).
+- `src/game.c`: the four screens, ported from the original FlxStates.
+- `src/main.c`: window, fixed 60 Hz loop, and pixel-perfect scaling.
+- `tests/check.c`: logic checks that run without a window.
+- `assets/`: sprites, tiles and Tiled maps taken from the original SWF.
+
+## Build
+
+Desktop (macOS, Windows, Linux) needs CMake 3.16 or newer and a C compiler.
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+./build/kurban
+```
+
+On Linux, install the X11 and OpenGL headers first.
+On Debian or Ubuntu that is `libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev`.
+
+Web needs Emscripten.
+
+```sh
+emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+cmake --build build-web
+python3 -m http.server 8765 --bind 127.0.0.1 --directory build-web
+```
+
+Then open http://127.0.0.1:8765/.
+
+## Publish on itch.io
+
+```sh
+emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+cmake --build build-web --target itch
+```
+
+Upload `build-web/kurban-itch.zip`. On the itch.io project page, use these settings:
+
+- Kind of project: HTML.
+- Tick "This file will be played in the browser".
+- Viewport dimensions: 720 x 240.
+- Leave "Mobile friendly" unticked, since the game needs a keyboard.
+
+Logic checks run from this folder:
+
+```sh
+./build/kurban_check
+```
+
+## Code checks
+
+These tools are deterministic: the same code gives the same result every run.
+
+Static analysis reads the code without running it.
+
+```sh
+cppcheck --enable=warning,performance,portability,style --std=c99 \
+    -D__STDC__=1 -D__STDC_VERSION__=199901L --quiet \
+    -I src -I vendor/raylib/src --suppress=missingIncludeSystem src tests
+for f in src/*.c tests/*.c; do clang --analyze -I src -I vendor/raylib/src "$f" -o /dev/null; done
+```
+
+AddressSanitizer catches bad memory access, and UndefinedBehaviorSanitizer catches undefined behaviour.
+Both run the logic checks with extra checking compiled in.
+
+```sh
+cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined" \
+    -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+cmake --build build-asan --target kurban_check
+./build-asan/kurban_check
+```
+
+On macOS, the built-in `leaks` tool finds memory that was never freed.
+On Linux, AddressSanitizer reports leaks itself.
+
+```sh
+leaks --atExit -- ./build/kurban_check
+```
