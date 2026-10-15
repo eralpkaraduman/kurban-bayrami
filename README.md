@@ -5,6 +5,13 @@ Carry sheep from the fields, through town, to the pit. Bring as many as you like
 
 The original source code is lost. In October 2026 the game was rebuilt in C with raylib, from a decompile of the original SWF.
 
+## Play it
+
+- [Game page](https://eralpkaraduman.github.io/kurban-bayrami/), with the description, controls and screenshots.
+- [Game only](https://eralpkaraduman.github.io/kurban-bayrami/play/), full window.
+
+It runs in the browser on desktop with a keyboard, and on phones and tablets with on-screen controls.
+
 ## What is here
 
 - `KurbanBayrami.swf`, `index.html`, `js/`, `expressInstall.swf`: the original 2011 Flash build. It was made with ActionScript 3 and Flixel 2.35.
