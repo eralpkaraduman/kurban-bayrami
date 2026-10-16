@@ -13,13 +13,15 @@ import { render, tempDir, webDir } from './helpers.mjs';
 const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 // A stand-in for the Emscripten game: it sizes the canvas to the game's
-// 360x120 resolution, records every key the touch bar sends, and runs the
-// page's postRun hook, as the real game does once it starts.
+// resolution, 360x120 unless ?game=WxH says otherwise, records every key the
+// touch bar sends, and runs the page's postRun hook, as the real game does
+// once it starts.
 const GAME_STUB = `<script>
   window.keys = [];
   Module._flx_touch_key = function (key, down) { window.keys.push(key + (down ? ' down' : ' up')); };
-  canvas.width = 360;
-  canvas.height = 120;
+  var size = (new URLSearchParams(location.search).get('game') || '360x120').split('x');
+  canvas.width = Number(size[0]);
+  canvas.height = Number(size[1]);
   Module.postRun.forEach(function (run) { run(); });
 </script>`;
 
@@ -118,6 +120,35 @@ test('touch mode: the bar shows the configured buttons, and the game fills the w
   assert.deepEqual(await canvasSize(page), [390, 130]);
   assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-mobile')), true);
   assert.deepEqual(page.errors, []);
+  await page.close();
+});
+
+test('touch mode, landscape: a 3:2 game gets the controls beside it, without overlap', async () => {
+  const page = await openPage('row.html?game=240x160', KnownDevices['iPhone 13 landscape']);
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-beside')), true);
+  const boxes = await page.evaluate(() => {
+    const box = el => { const r = document.querySelector(el).getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width }; };
+    return { game: box('canvas'), dpad: box('.tc-dpad'), actions: box('.tc-actions'), screen: { width: innerWidth, height: innerHeight } };
+  });
+  assert.ok(boxes.dpad.right <= boxes.game.left, 'D-pad is left of the game');
+  assert.ok(boxes.actions.left >= boxes.game.right, 'buttons are right of the game');
+  assert.ok(boxes.game.top >= 0 && boxes.game.bottom <= boxes.screen.height, 'game fits the height');
+  // With the bar under it, this game could only be about 366 px wide.
+  assert.ok(boxes.game.width > 420, `game is ${boxes.game.width} px wide`);
+  // The buttons still work beside the game.
+  const { centre, send } = await touchAt(page);
+  await send('touchStart', [{ ...(await centre(263)), id: 1 }, { ...(await centre(88)), id: 2 }]);
+  await send('touchEnd', []);
+  assert.deepEqual(await page.evaluate(() => window.keys), ['263 down', '88 down', '263 up', '88 up']);
+  assert.deepEqual(page.errors, []);
+  await page.close();
+});
+
+test('touch mode, landscape: a 3:1 game keeps the bar under it, where it is bigger', async () => {
+  const page = await openPage('', KnownDevices['iPhone 13 landscape']);
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-beside')), false);
+  // 390 px tall screen, less the 152 px D-pad and 40 px of padding, leaves 198.
+  assert.deepEqual(await canvasSize(page), [594, 198]);
   await page.close();
 });
 
