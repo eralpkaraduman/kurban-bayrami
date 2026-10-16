@@ -114,6 +114,11 @@ HaciExit haci_update(Haci *h)
 
 #define KOYUN_TURN_BACK_MARGIN 25
 #define KOYUN_STUCK_FRAMES 10
+#define KOYUN_WALK_SPEED 50
+// A throw sends the sheep about 60 px forward and 17 px up from the
+// haci's head, with gravity at 300.
+#define KOYUN_THROW_SPEED_X 90
+#define KOYUN_THROW_SPEED_Y 100
 
 static bool coin_flip(void)
 {
@@ -130,7 +135,7 @@ void koyun_init(Koyun *k, float x, float y)
     flx_sprite_add_animation(s, "caught", (int[]){0, 1}, 2, 15, true);
     flx_sprite_add_animation(s, "idle", (int[]){0}, 1, 0, false);
 
-    s->maxVelocity.x = 50;
+    s->maxVelocity.x = KOYUN_WALK_SPEED;
     s->acceleration.y = 300;
     s->drag.x = s->maxVelocity.x * 4;
     k->movingLeft = coin_flip();
@@ -153,6 +158,50 @@ void koyun_released(Koyun *k, Haci *haci)
     k->isCaught = false;
     k->movingLeft = haci->sprite.facing == FLX_LEFT;
     k->justReleased = true;
+}
+
+// A port addition: the original only dropped sheep. The haci throws the
+// sheep forward and a little up, the way it faces. In the air the sheep goes
+// faster than it can walk and keeps its speed, until it lands.
+void koyun_thrown(Koyun *k, Haci *haci)
+{
+    if (!k->isCaught) return;
+    FlxSprite *s = &k->sprite;
+    k->haci = haci;
+    haci->caughtSomething = NULL;
+    k->isCaught = false;
+    k->thrown = true;
+    k->movingLeft = haci->sprite.facing == FLX_LEFT;
+    s->maxVelocity.x = KOYUN_THROW_SPEED_X;
+    s->drag.x = 0;
+    s->velocity.x = (k->movingLeft ? -1 : 1) * KOYUN_THROW_SPEED_X;
+    s->velocity.y = -KOYUN_THROW_SPEED_Y;
+}
+
+static void koyun_fly(Koyun *k)
+{
+    FlxSprite *s = &k->sprite;
+    s->scale.y = 1;
+    s->acceleration.x = 0;
+    s->facing = k->movingLeft ? FLX_RIGHT : FLX_LEFT; // the art faces left
+    flx_sprite_update(s);
+
+    // The screen edges act as walls in flight. Past them the map has no
+    // floor, so a sheep thrown off screen would fall forever.
+    if (s->x < 0) {
+        s->x = 0;
+        s->velocity.x = 0;
+    } else if (s->x > FLX_WIDTH - s->width) {
+        s->x = FLX_WIDTH - s->width;
+        s->velocity.x = 0;
+    }
+}
+
+static void koyun_land(Koyun *k)
+{
+    k->thrown = false;
+    k->sprite.maxVelocity.x = KOYUN_WALK_SPEED;
+    k->sprite.drag.x = KOYUN_WALK_SPEED * 4;
 }
 
 // The original counts a sheep as stuck unless both x and y changed.
@@ -217,7 +266,10 @@ void koyun_update(Koyun *k)
         s->y = k->haci->sprite.y - k->haci->sprite.height / 2 + 2;
         s->scale.y = -1;
         k->haci->hasSheep = true;
+    } else if (k->thrown && !s->onFloor) {
+        koyun_fly(k);
     } else {
+        if (k->thrown) koyun_land(k);
         koyun_wander(k);
     }
 

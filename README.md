@@ -27,4 +27,4 @@ It runs in the browser on desktop with a keyboard, and on phones and tablets wit
 
 ## Controls
 
-Arrow keys walk and climb. X jumps. Hold C near a sheep to carry it, and release C to drop it.
+Arrow keys walk and climb. X jumps. Press C near a sheep to pick it up, and press C again to throw it.

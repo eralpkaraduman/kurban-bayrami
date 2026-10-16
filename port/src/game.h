@@ -29,6 +29,7 @@ struct Koyun {
     Haci *haci;
     bool isCaught;
     bool justReleased;
+    bool thrown; // in the air after a throw, until it lands
     bool markCollected; // already counted in the pit
     bool canJump;
     bool movingLeft;
@@ -53,6 +54,7 @@ void koyun_init(Koyun *k, float x, float y);
 void koyun_update(Koyun *k);
 void koyun_caught(Koyun *k, Haci *haci);
 void koyun_released(Koyun *k, Haci *haci);
+void koyun_thrown(Koyun *k, Haci *haci);
 
 void game_init(void);
 void game_update(void);

@@ -28,23 +28,24 @@ Carry sheep from the fields to the pit, as many as you can.
 HOW TO PLAY
 1. Press X on the title screen to start in town.
 2. Walk right, past the houses, into the fields where the sheep live.
-3. Stand next to a sheep and hold C. The haci lifts it over his head.
-4. Keep holding C and walk left, back through town, to the pit at the far left.
-5. Let go of C over the pit. The sheep drops in and counts.
+3. Stand next to a sheep and press C. The haci lifts it over his head.
+4. Carry it left, back through town, and walk off the left edge into the pit.
+5. The sheep drops into the pit and counts.
 6. Climb out of the pit on the ladder, and go get another sheep.
 
 Tips
 - Buildings are solid. Jump onto the rooftops, or jump over them.
 - Press X again in mid-air while moving, for a backflip. You rarely need it. It looks good.
-- If you let go of C in town, the sheep wanders off. It does not know where the pit is.
+- Press C again to throw the sheep forward and a little up, the way the haci faces.
+- A thrown sheep wanders off. It does not know where the pit is.
 
 
 CONTROLS
 On a phone or tablet, on-screen buttons under the game match these keys.
 Left and Right arrows: walk
 X: jump. Press it again in the air while moving to backflip.
-Hold C near a sheep: pick it up and carry it
-Release C: drop the sheep
+C near a sheep: pick it up and carry it
+C while carrying: throw the sheep forward
 Up and Down arrows: climb the ladder in the pit
 
 

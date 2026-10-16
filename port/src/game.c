@@ -74,21 +74,22 @@ static Rectangle tmx_object(const char *name)
     return r;
 }
 
-static void catch_overlapping_sheep(void)
+// C toggles carrying: press it next to a sheep to pick the sheep up, and
+// press it again to throw the sheep forward. The original game needed C held
+// down the whole time, which is hard to do with a thumb on a touch screen.
+static void toggle_carry(bool canPickUp)
 {
-    if (!flx_key_down(KEY_C) || state.haci.caughtSomething) return;
+    if (!flx_key_pressed(KEY_C)) return;
+    if (state.haci.caughtSomething) {
+        koyun_thrown(state.haci.caughtSomething, &state.haci);
+        return;
+    }
+    if (!canPickUp) return;
     for (int i = 0; i < state.koyunCount; i++) {
         if (flx_overlaps(&state.haci.sprite, &state.koyunlar[i].sprite)) {
             koyun_caught(&state.koyunlar[i], &state.haci);
             return;
         }
-    }
-}
-
-static void release_sheep_on_c_up(void)
-{
-    if (flx_key_released(KEY_C) && state.haci.caughtSomething) {
-        koyun_released(state.haci.caughtSomething, &state.haci);
     }
 }
 
@@ -166,10 +167,10 @@ static const char *CITY_MESSAGES[] = {
     "Press X to jump, arrow keys to move",
     "You can do a backflip while in the air",
     "You carry sheeps to the pit to the left",
-    "Hold C key near a sheep to carry it",
+    "Press C near a sheep to carry it",
     "The key X is the jump key",
     "Forest is a good place to find sheeps, here is not",
-    "Come near a sheep and hold C, this will make you carry it",
+    "Come near a sheep and press C, this will make you carry it",
     "Dont leave sheeps here, I don't know what happens if you do",
     "Those appartments are designed to make you lose time, yes.",
     "You can do backflip, but do you really need it?",
@@ -207,8 +208,7 @@ static void update_city(void)
 
     flx_tilemap_collide(&state.tilemap, &state.haci.sprite);
     update_koyunlar();
-    catch_overlapping_sheep();
-    release_sheep_on_c_up();
+    toggle_carry(true);
 }
 
 // --- CollectState: the fields where the sheep live -----------------------
@@ -233,8 +233,7 @@ static void update_collect(void)
 
     flx_tilemap_collide(&state.tilemap, &state.haci.sprite);
     update_koyunlar();
-    catch_overlapping_sheep();
-    release_sheep_on_c_up();
+    toggle_carry(true);
 }
 
 // --- KillStage: the pit where sheep are collected -------------------------
@@ -317,7 +316,7 @@ static void update_kill(void)
             flx_collide_sprites(&state.koyunlar[i].sprite, &state.koyunlar[j].sprite);
         }
     }
-    release_sheep_on_c_up();
+    toggle_carry(false); // "You can't carry sheeps in this pit"
 
     for (int i = 0; i < state.koyunCount; i++) {
         Koyun *k = &state.koyunlar[i];

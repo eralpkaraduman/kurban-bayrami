@@ -4,7 +4,7 @@ A C rewrite of the 2011 Flash game, built on raylib 6.0.
 CMake downloads raylib on the first configure, checks it against a pinned SHA-256 hash, and links it statically. Every build is self-contained, with no raylib library to ship beside it.
 
 Bring sheep to the pit in the leftmost screen.
-Arrow keys move, X jumps, and holding C near a sheep carries it.
+Arrow keys move, and X jumps. Press C near a sheep to pick it up, and press C again to throw it.
 
 ## Layout
 

@@ -2,6 +2,9 @@
 //   ./build/kurban_check
 #include "../src/game.h"
 
+// Release builds define NDEBUG, which would remove every assert below,
+// including the setup calls written inside them. Keep them in all builds.
+#undef NDEBUG
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -70,6 +73,52 @@ int main(void)
     koyun_update(&koyun);
     assert(koyun.sprite.velocity.y < 0);
     assert(koyun.sprite.scale.y > 0);
+
+    // Pressing C again throws the sheep forward and up, the way the haci
+    // faces. It lands ahead of him, then walks at its normal speed again.
+    // The pit has a long, flat floor, so nothing gets in the way.
+    char *pitTmx = LoadFileText("assets/rageMap.tmx");
+    FlxTilemap pit = {0};
+    assert(flx_tilemap_load(&pit, pitTmx, "map", assets.tiles));
+    for (int dir = -1; dir <= 1; dir += 2) {
+        Haci thrower;
+        haci_init(&thrower, 180, 40);
+        run_frames(&thrower, &pit, 120); // land first
+        assert(thrower.sprite.onFloor || thrower.sprite.velocity.y == 0);
+        thrower.sprite.facing = dir < 0 ? FLX_LEFT : FLX_RIGHT;
+        Koyun flier;
+        koyun_init(&flier, thrower.sprite.x, thrower.sprite.y);
+        koyun_caught(&flier, &thrower);
+        koyun_update(&flier);
+        float startX = flier.sprite.x, startY = flier.sprite.y, highest = startY;
+        koyun_thrown(&flier, &thrower);
+        assert(!flier.isCaught && thrower.caughtSomething == NULL && flier.thrown);
+        for (int i = 0; i < 180 && flier.thrown; i++) {
+            koyun_update(&flier);
+            flx_tilemap_collide(&pit, &flier.sprite);
+            if (flier.sprite.y < highest) highest = flier.sprite.y;
+        }
+        assert(!flier.thrown);                              // it landed
+        assert((flier.sprite.x - startX) * dir > 30);       // forward, the way he faced
+        assert(highest < startY - 10);                      // up first
+        assert(flier.sprite.maxVelocity.x == 50 && flier.sprite.drag.x == 200);
+    }
+    flx_tilemap_unload(&pit);
+    UnloadFileText(pitTmx);
+
+    // A sheep thrown at the screen edge stays on screen.
+    {
+        Haci thrower;
+        haci_init(&thrower, FLX_WIDTH - 10, 80);
+        thrower.sprite.facing = FLX_RIGHT;
+        Koyun flier;
+        koyun_init(&flier, thrower.sprite.x, thrower.sprite.y);
+        koyun_caught(&flier, &thrower);
+        koyun_update(&flier);
+        koyun_thrown(&flier, &thrower);
+        for (int i = 0; i < 60; i++) koyun_update(&flier);
+        assert(flier.sprite.x <= FLX_WIDTH - flier.sprite.width);
+    }
 
     // Sheep dropped on each other stack instead of merging.
     Koyun a, b;
