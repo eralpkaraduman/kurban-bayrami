@@ -123,32 +123,37 @@ test('touch mode: the bar shows the configured buttons, and the game fills the w
   await page.close();
 });
 
-test('touch mode, landscape: a 3:2 game gets the controls beside it, without overlap', async () => {
+test('touch mode, landscape: a 3:2 game fills the screen height, with controls over it', async () => {
   const page = await openPage('row.html?game=240x160', KnownDevices['iPhone 13 landscape']);
-  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-beside')), true);
-  const boxes = await page.evaluate(() => {
-    const box = el => { const r = document.querySelector(el).getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width }; };
-    return { game: box('canvas'), dpad: box('.tc-dpad'), actions: box('.tc-actions'), screen: { width: innerWidth, height: innerHeight } };
-  });
-  assert.ok(boxes.dpad.right <= boxes.game.left, 'D-pad is left of the game');
-  assert.ok(boxes.actions.left >= boxes.game.right, 'buttons are right of the game');
-  assert.ok(boxes.game.top >= 0 && boxes.game.bottom <= boxes.screen.height, 'game fits the height');
-  // With the bar under it, this game could only be about 366 px wide.
-  assert.ok(boxes.game.width > 420, `game is ${boxes.game.width} px wide`);
-  // The buttons still work beside the game.
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-overlay')), true);
+  // An 844x390 screen: the game takes the full 390 px height.
+  assert.deepEqual(await canvasSize(page), [585, 390]);
+  // The buttons sit on top of the game and still work, two at once.
   const { centre, send } = await touchAt(page);
   await send('touchStart', [{ ...(await centre(263)), id: 1 }, { ...(await centre(88)), id: 2 }]);
   await send('touchEnd', []);
   assert.deepEqual(await page.evaluate(() => window.keys), ['263 down', '88 down', '263 up', '88 up']);
+  // A touch on the game away from the buttons sends no key.
+  await send('touchStart', [{ x: 422, y: 100, id: 1 }]);
+  await send('touchEnd', []);
+  assert.equal(await page.evaluate(() => window.keys.length), 4);
   assert.deepEqual(page.errors, []);
   await page.close();
 });
 
-test('touch mode, landscape: a 3:1 game keeps the bar under it, where it is bigger', async () => {
+test('touch mode, landscape: a 3:1 game fills the screen width, with controls over it', async () => {
   const page = await openPage('', KnownDevices['iPhone 13 landscape']);
-  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-beside')), false);
-  // 390 px tall screen, less the 152 px D-pad and 40 px of padding, leaves 198.
-  assert.deepEqual(await canvasSize(page), [594, 198]);
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-overlay')), true);
+  assert.deepEqual(await canvasSize(page), [844, 281]);
+  await page.close();
+});
+
+test('touch mode, portrait: the bar stays under the game, not over it', async () => {
+  const page = await openPage('', KnownDevices['iPhone 13']);
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('tc-overlay')), false);
+  const gameBottom = await page.$eval('canvas', c => c.getBoundingClientRect().bottom);
+  const barTop = await page.$eval('.tc-bar', b => b.getBoundingClientRect().top);
+  assert.ok(barTop >= gameBottom - 0.5, 'the bar starts below the game');
   await page.close();
 });
 
