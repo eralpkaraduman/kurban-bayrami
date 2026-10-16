@@ -14,8 +14,8 @@ const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Conte
 
 // A stand-in for the Emscripten game: it sizes the canvas to the game's
 // resolution, 360x120 unless ?game=WxH says otherwise, records every key the
-// touch bar sends, and runs the page's postRun hook, as the real game does
-// once it starts.
+// touch bar sends, runs the page's postRun hook, and cancels touches on the
+// canvas, as the real raylib game does.
 const GAME_STUB = `<script>
   window.keys = [];
   Module._flx_touch_key = function (key, down) { window.keys.push(key + (down ? ' down' : ' up')); };
@@ -23,6 +23,10 @@ const GAME_STUB = `<script>
   canvas.width = Number(size[0]);
   canvas.height = Number(size[1]);
   Module.postRun.forEach(function (run) { run(); });
+  // Like raylib on the web, cancel every touch on the canvas.
+  ['touchstart', 'touchmove', 'touchend'].forEach(function (type) {
+    canvas.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
 </script>`;
 
 let server, browser, baseUrl;
@@ -42,6 +46,10 @@ before(async () => {
     WEB_TOUCH_BUTTONS: "[{ label: 'X', caption: 'Jump', key: 88 }]",
   }, tempDir());
   writeFileSync(join(dir, 'row.html'), readFileSync(rowShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
+  // A parent page with the game in a frame and text below, like the cover page.
+  writeFileSync(join(dir, 'embed.html'), `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1">
+<body style="margin:0"><iframe src="index.html" style="display:block;width:100%;height:320px;border:0"></iframe>
+<div style="height:2000px">Text below the game</div></body>`);
   copyFileSync(join(webDir, 'touch-controls.js'), join(dir, 'touch-controls.js'));
   copyFileSync(join(webDir, 'touch-controls.css'), join(dir, 'touch-controls.css'));
 
@@ -211,6 +219,30 @@ test('touch mode: touch starts are cancelled, so iOS cannot swipe the page away'
   assert.deepEqual(await page.evaluate(() => window.touchStarts), [true, true]);
   // The button still works, since the bar listens to pointer events.
   assert.deepEqual(await page.evaluate(() => window.keys), ['88 down', '88 up']);
+  await page.close();
+});
+
+test('touch mode, embedded: a swipe over the game scrolls the outer page, but not over the bar', async () => {
+  const page = await openPage('embed.html', KnownDevices['iPhone 13']);
+  await new Promise(r => setTimeout(r, 500));
+  const frame = await (await page.$('iframe')).contentFrame();
+  assert.equal(await frame.evaluate(() => document.documentElement.classList.contains('tc-embedded')), true);
+  const cdp = await page.createCDPSession();
+  const drag = async (x, fromY, toY) => {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: fromY, id: 1 }] });
+    for (let i = 1; i <= 10; i++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: fromY + (toY - fromY) * i / 10, id: 1 }] });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await new Promise(r => setTimeout(r, 400));
+  };
+  // The game sits at the top of the frame, 130 px tall. The bar is below it.
+  await drag(200, 100, 20);
+  assert.ok(await page.evaluate(() => window.scrollY) > 20, 'swipe over the game scrolled the page');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const barTop = await frame.$eval('.tc-bar', b => b.getBoundingClientRect().top);
+  await drag(200, barTop + 150, barTop + 60);
+  assert.equal(await page.evaluate(() => window.scrollY), 0, 'swipe over the bar did not scroll');
   await page.close();
 });
 
