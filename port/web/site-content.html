@@ -43,11 +43,11 @@
     </div>
 
     <h2>History</h2>
-    <p>I made Kurban Bayrami: The Gathering in August 2011, as a small Flash game. It is written in ActionScript 3 with the Flixel 2.35 game library, in a FlashDevelop project. It was my warm-up game for Ludum Dare 21.</p>
+    <p>I made Kurban Bayrami: The Gathering from November 2010 to August 2011, as a small Flash game. It is written in ActionScript 3 with the Flixel 2.35 game library, in a FlashDevelop project. It was my warm-up game for Ludum Dare 21.</p>
     <p>The build was compiled with the Flex SDK 4.5 on 18 August 2011, the day before Ludum Dare 21 began. The maps were drawn in the Tiled map editor. The title animation uses TweenMax.</p>
 
     <h2>How it was ported</h2>
-    <p>Flash Player is gone from every browser, and the original source code was lost. Only the compiled SWF file survived.</p>
+    <p>Flash Player is gone from every browser, and the source of the final build was not kept. The early source survives in the <a href="https://github.com/eralpkaraduman/godstrokegames/tree/master/KurbanBayrami">godstrokegames repo</a>, but the August 2011 build is later and has changes it lacks. Only the compiled SWF of that build survived, so the port starts from it.</p>
     <p>In October 2026 the SWF was decompiled with JPEXS Free Flash Decompiler, to read the game logic and extract the art. The game was then rewritten by hand in plain C, with readable names and comments. It is not a translation of decompiled code.</p>
     <p>The port uses raylib 6.0 for drawing and input. A small Flixel-style layer in C copies Flixel's movement maths, so the haci and the sheep move and jump exactly as they did in 2011. The original Tiled maps load unchanged.</p>
     <p>The web version is compiled to WebAssembly with Emscripten. The same code also builds for macOS, Windows and Linux.</p>
@@ -55,7 +55,7 @@
 
     <h2>More information</h2>
     <table class="info">
-      <tr><th>Made</th><td>August 2011</td></tr>
+      <tr><th>Made</th><td>November 2010 to August 2011</td></tr>
       <tr><th>Event</th><td>Ludum Dare 21 warm-up</td></tr>
       <tr><th>Original</th><td>Flash, ActionScript 3, Flixel 2.35</td></tr>
       <tr><th>Port</th><td>C99, raylib 6.0, WebAssembly</td></tr>

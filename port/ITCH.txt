@@ -50,7 +50,7 @@ Up and Down arrows: climb the ladder in the pit
 
 
 HISTORY
-I made Kurban Bayrami: The Gathering in August 2011, as a small Flash game.
+I made Kurban Bayrami: The Gathering from November 2010 to August 2011, as a small Flash game.
 It is written in ActionScript 3 with the Flixel 2.35 game library, in a FlashDevelop project.
 It was my warm-up game for Ludum Dare 21.
 The build was compiled with the Flex SDK 4.5 on 18 August 2011, the day before Ludum Dare 21 began.
@@ -58,7 +58,7 @@ The maps were drawn in the Tiled map editor. The title animation uses TweenMax.
 
 
 HOW IT WAS PORTED
-Flash Player is gone from every browser, and the original source code was lost. Only the compiled SWF file survived.
+Flash Player is gone from every browser, and the source of the final build was not kept. The early source survives at https://github.com/eralpkaraduman/godstrokegames/tree/master/KurbanBayrami but the August 2011 build is later and has changes it lacks. Only the compiled SWF of that build survived, so the port starts from it.
 
 In October 2026 the SWF was decompiled with JPEXS Free Flash Decompiler, to read the game logic and extract the art. The game was then rewritten by hand in plain C, with readable names and comments. It is not a translation of decompiled code.
 

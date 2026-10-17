@@ -1,9 +1,9 @@
 # Kurban Bayrami: The Gathering
 
-A small Flash platformer from August 2011, my warm-up game for Ludum Dare 21.
+A small Flash platformer, made from November 2010 to August 2011, my warm-up game for Ludum Dare 21.
 Carry sheep from the fields, through town, to the pit. Bring as many as you like.
 
-The original source code is lost. In October 2026 the game was rebuilt in C with raylib, from a decompile of the original SWF.
+The early source code survives in the [godstrokegames repo](https://github.com/eralpkaraduman/godstrokegames/tree/master/KurbanBayrami). The source of the final August 2011 build was not kept. In October 2026 the game was rebuilt in C with raylib, from a decompile of that build's SWF.
 
 ## Play it
 
