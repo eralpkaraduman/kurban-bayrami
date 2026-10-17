@@ -58,7 +58,7 @@ The maps were drawn in the Tiled map editor. The title animation uses TweenMax.
 
 
 HOW IT WAS PORTED
-Flash Player is gone from every browser, and the source of the final build was not kept. The early source survives at https://github.com/eralpkaraduman/godstrokegames/tree/master/KurbanBayrami but the August 2011 build is later and has changes it lacks. Only the compiled SWF of that build survived, so the port starts from it.
+Flash Player is gone from every browser, and the source of the final build was not kept. The early source survives at https://github.com/eralpkaraduman/godstrokegames/tree/master/KurbanBayrami. The August 2011 build is later and has changes it lacks. Only the compiled SWF of that build survived, so the port starts from it.
 
 In October 2026 the SWF was decompiled with JPEXS Free Flash Decompiler, to read the game logic and extract the art. The game was then rewritten by hand in plain C, with readable names and comments. It is not a translation of decompiled code.
 
