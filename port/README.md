@@ -24,7 +24,7 @@ On a touch screen, a control bar sits under the game: a D-pad, X to jump and C t
 The game fills the screen width, and the page never zooms or scrolls.
 With a keyboard, the bar stays hidden. Add `?touch=1` to the address to test the touch layout on a desktop.
 
-The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard.
+The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard. A gamepad feeds it too, through `gamepad_poll()` in the same file. The D-pad or left stick is the arrows, the bottom face button is X, and the left face button is C.
 
 Both pages are templates. CMake fills in each placeholder, a name between two at signs, from variables set in `CMakeLists.txt`: the title, tagline, colours, game shape and touch keys. The cover page's text comes from `web/site-content.html`.
 

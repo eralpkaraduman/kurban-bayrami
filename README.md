@@ -10,7 +10,7 @@ The early source code survives in the [godstrokegames repo](https://github.com/e
 - [Game page](https://eralpkaraduman.github.io/kurban-bayrami/), with the description, controls and screenshots.
 - [Game only](https://eralpkaraduman.github.io/kurban-bayrami/play/), full window.
 
-It runs in the browser on desktop with a keyboard, and on phones and tablets with on-screen controls.
+It runs in the browser on desktop with a keyboard or gamepad, and on phones and tablets with on-screen controls.
 
 ## What is here
 
@@ -28,3 +28,5 @@ It runs in the browser on desktop with a keyboard, and on phones and tablets wit
 ## Controls
 
 Arrow keys walk and climb. X jumps. Press C near a sheep to pick it up, and press C again to throw it.
+
+On a gamepad, the D-pad or left stick is the arrows. The bottom face button is X, and the left face button is C.
