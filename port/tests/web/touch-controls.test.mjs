@@ -53,12 +53,13 @@ before(async () => {
     WEB_TOUCH_BUTTONS: "[{ label: 'X', caption: 'Jump', key: 88 }]",
   }, tempDir());
   writeFileSync(join(dir, 'row.html'), readFileSync(rowShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
-  // A 3:2 game with a full D-pad, three buttons, and taps as clicks.
+  // A 3:2 game with a thumb stick, three buttons, and taps as clicks, like Rockmorse.
   const tapShell = render('shell.html.in', {
     WEB_TITLE: 'Tap Game',
     WEB_TOUCH_DPAD: '{ up: 265, down: 264, left: 263, right: 262 }',
     WEB_TOUCH_BUTTONS: "[{ label: 'Space', caption: 'Pull', key: 32 }, { label: 'M', caption: 'Map', key: 77 }, { label: 'H', caption: 'Help', key: 72 }]",
     WEB_TOUCH_TAP_CLICKS: 'ON',
+    WEB_TOUCH_STICK: 'ON',
   }, tempDir());
   writeFileSync(join(dir, 'tap.html'), readFileSync(tapShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
   // A parent page with the game in a frame and text below, like the cover page.
@@ -270,6 +271,43 @@ test('touch mode: double-tap does not zoom the page', async () => {
   }
   await new Promise(r => setTimeout(r, 400));
   assert.equal(await page.evaluate(() => visualViewport.scale), 1);
+  await page.close();
+});
+
+test('touch mode: the thumb stick sends one or two arrow keys, and a button works beside it', async () => {
+  const page = await openPage('tap.html?game=660x440', KnownDevices['iPhone 13']);
+  assert.equal(await page.$$eval('.tc-dpad .tc-button', b => b.length), 0);
+  const { centre, send } = await touchAt(page);
+  const stick = await page.$eval('.tc-stick', d => {
+    const r = d.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2, r: r.width / 2 };
+  });
+  const at = (dx, dy) => ({ x: stick.x + dx * stick.r, y: stick.y + dy * stick.r, id: 1 });
+  const space = await centre(32);
+  const log = () => page.evaluate(() => window.keys.splice(0));
+
+  await send('touchStart', [at(0.1, 0)]);            // inside the dead zone
+  assert.deepEqual(await log(), []);
+  await send('touchMove', [at(0.8, 0)]);             // right
+  assert.deepEqual(await log(), ['262 down']);
+  await send('touchMove', [at(0.6, -0.6)]);          // up and right
+  assert.deepEqual(await log(), ['265 down']);
+  await send('touchMove', [at(0.8, -0.2)]);          // 14 degrees up: right only
+  assert.deepEqual(await log(), ['265 up']);
+  await send('touchMove', [at(-2, -2)]);             // far off the base, up and left
+  assert.deepEqual(await log(), ['262 up', '263 down', '265 down']);
+  const [kx, ky] = await page.$eval('.tc-knob', k => {
+    const m = new DOMMatrix(getComputedStyle(k).transform);
+    return [m.e, m.f];
+  });
+  assert.ok(kx < 0 && ky < 0 && Math.hypot(kx, ky) < stick.r, `the knob is at ${kx}, ${ky}, on the base`);
+  await send('touchStart', [at(-2, -2), { ...space, id: 2 }]);
+  assert.deepEqual(await log(), ['32 down']);
+  await send('touchEnd', []);
+  assert.deepEqual((await log()).sort(), ['263 up', '265 up', '32 up']);
+  assert.equal(await page.$eval('.tc-knob', k => k.style.transform), '');
+  assert.equal(await page.$$eval('.tc-pressed', b => b.length), 0);
+  assert.deepEqual(page.errors, []);
   await page.close();
 });
 

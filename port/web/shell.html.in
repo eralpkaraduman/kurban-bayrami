@@ -10,6 +10,7 @@
     WEB_TOUCH_DPAD     D-pad keys, e.g. { left: 263, right: 262 }
     WEB_TOUCH_BUTTONS  round buttons, e.g. [{ label: 'X', caption: 'Jump', key: 88 }]
     WEB_TOUCH_TAP_CLICKS  optional: ON makes a tap on the game a mouse click
+    WEB_TOUCH_STICK       optional: ON shows a thumb stick in place of the D-pad's arrows
   Key codes are raylib's. The game must export flx_touch_key(key, down).
 -->
 <html lang="en">
@@ -55,6 +56,7 @@
     canvas: canvas,
     frame: document.getElementById('frame'),
     dpad: @WEB_TOUCH_DPAD@,
+    stick: '@WEB_TOUCH_STICK@' === 'ON',
     buttons: @WEB_TOUCH_BUTTONS@,
     tapClicks: '@WEB_TOUCH_TAP_CLICKS@' === 'ON',
     onKey: function (key, down) {

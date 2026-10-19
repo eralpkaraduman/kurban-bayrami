@@ -26,7 +26,7 @@ With a keyboard, the bar stays hidden. Add `?touch=1` to the address to test the
 
 The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard. A gamepad feeds it too, through `gamepad_poll()` in the same file. The D-pad or left stick is the arrows, the bottom face button is X, and the left face button is C.
 
-A game with three or more round buttons gets smaller ones, so they fit beside a full D-pad on a 360 px wide phone. A game that reads the mouse can set `WEB_TOUCH_TAP_CLICKS` to `ON`. A short tap on the game then reaches it as a left click. A swipe still scrolls an embedded page. Kurban leaves it off.
+A game with three or more round buttons gets smaller ones, so they fit beside a full D-pad on a 360 px wide phone. A game that reads the mouse can set `WEB_TOUCH_TAP_CLICKS` to `ON`. A short tap on the game then reaches it as a left click. A swipe still scrolls an embedded page. Kurban leaves it off. A game with four directions can set `WEB_TOUCH_STICK` to `ON`. A thumb stick then replaces the arrows. It sends the same arrow keys, two at once on a diagonal. Kurban leaves it off.
 
 The game page shows a loading bar while the game's data downloads. raylib cancels mouse wheel events on the game, so the page keeps them away from it. The wheel over an embedded game then scrolls the page around it. None of the three games reads the wheel.
 
