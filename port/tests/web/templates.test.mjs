@@ -16,6 +16,8 @@ test('game page template fills in the title and touch keys', () => {
   assert.match(html, /<title>Test Game: The Title<\/title>/);
   assert.match(html, /dpad: \{ left: 263, right: 262 \},/);
   assert.match(html, /buttons: \[\{ label: 'X', caption: 'Jump', key: 88 \}\],/);
+  // Taps as clicks stay off unless a game asks for them.
+  assert.match(html, /tapClicks: '' === 'ON',/);
   assert.doesNotMatch(html, leftoverPlaceholder);
   // Emscripten fills in its own marker later. CMake must leave it alone.
   assert.match(html, /\{\{\{ SCRIPT \}\}\}/);
@@ -60,4 +62,9 @@ test('a value nobody sets becomes empty text, without any error', () => {
   const out = render('shell.html.in', { WEB_TITLE: 'Only a title' }, tempDir());
   const html = readFileSync(out, 'utf8');
   assert.match(html, /dpad: ,/);
+});
+
+test('a game can turn taps into clicks', () => {
+  const out = render('shell.html.in', { WEB_TITLE: 'Tap', WEB_TOUCH_TAP_CLICKS: 'ON' }, tempDir());
+  assert.match(readFileSync(out, 'utf8'), /tapClicks: 'ON' === 'ON',/);
 });

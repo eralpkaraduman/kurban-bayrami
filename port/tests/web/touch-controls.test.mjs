@@ -14,11 +14,16 @@ const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Conte
 
 // A stand-in for the Emscripten game: it sizes the canvas to the game's
 // resolution, 360x120 unless ?game=WxH says otherwise, records every key the
-// touch bar sends, runs the page's postRun hook, and cancels touches on the
-// canvas, as the real raylib game does.
+// touch bar sends and every mouse press and release on the canvas, runs the
+// page's postRun hook, and cancels touches on the canvas, as the real raylib
+// game does.
 const GAME_STUB = `<script>
   window.keys = [];
+  window.mouse = [];
   Module._flx_touch_key = function (key, down) { window.keys.push(key + (down ? ' down' : ' up')); };
+  ['mousedown', 'mouseup'].forEach(function (type) {
+    canvas.addEventListener(type, function (e) { window.mouse.push(type + ' ' + e.clientX + ',' + e.clientY); });
+  });
   var size = (new URLSearchParams(location.search).get('game') || '360x120').split('x');
   canvas.width = Number(size[0]);
   canvas.height = Number(size[1]);
@@ -46,6 +51,14 @@ before(async () => {
     WEB_TOUCH_BUTTONS: "[{ label: 'X', caption: 'Jump', key: 88 }]",
   }, tempDir());
   writeFileSync(join(dir, 'row.html'), readFileSync(rowShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
+  // A 3:2 game with a full D-pad, three buttons, and taps as clicks.
+  const tapShell = render('shell.html.in', {
+    WEB_TITLE: 'Tap Game',
+    WEB_TOUCH_DPAD: '{ up: 265, down: 264, left: 263, right: 262 }',
+    WEB_TOUCH_BUTTONS: "[{ label: 'Space', caption: 'Pull', key: 32 }, { label: 'M', caption: 'Map', key: 77 }, { label: 'H', caption: 'Help', key: 72 }]",
+    WEB_TOUCH_TAP_CLICKS: 'ON',
+  }, tempDir());
+  writeFileSync(join(dir, 'tap.html'), readFileSync(tapShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
   // A parent page with the game in a frame and text below, like the cover page.
   writeFileSync(join(dir, 'embed.html'), `<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1">
 <body style="margin:0"><iframe src="index.html" style="display:block;width:100%;height:320px;border:0"></iframe>
@@ -255,5 +268,52 @@ test('touch mode: double-tap does not zoom the page', async () => {
   }
   await new Promise(r => setTimeout(r, 400));
   assert.equal(await page.evaluate(() => visualViewport.scale), 1);
+  await page.close();
+});
+
+test('touch mode: three buttons and a full D-pad fit on a 360 px wide phone', async () => {
+  for (const width of [360, 390]) {
+    const page = await openPage('tap.html?game=660x440', { ...KnownDevices['iPhone 13'], viewport: { ...KnownDevices['iPhone 13'].viewport, width } });
+    const right = await page.$$eval('.tc-button', b => Math.max(...b.map(e => e.getBoundingClientRect().right)));
+    assert.ok(right <= width, `the last button ends at ${right}, inside ${width}`);
+    assert.equal(await page.$eval('.tc-actions', a => a.classList.contains('tc-actions-many')), true);
+    await page.close();
+  }
+  // Two buttons keep their size.
+  const page = await openPage('', KnownDevices['iPhone 13']);
+  assert.equal(await page.$eval('.tc-actions', a => a.classList.contains('tc-actions-many')), false);
+  await page.close();
+});
+
+test('touch mode: with tapClicks, a tap on the game is a mouse click, a swipe is not', async () => {
+  const page = await openPage('tap.html?game=660x440', KnownDevices['iPhone 13']);
+  const { centre, send } = await touchAt(page);
+  await send('touchStart', [{ x: 200, y: 100, id: 1 }]);
+  await send('touchEnd', []);
+  await new Promise(r => setTimeout(r, 250));
+  assert.deepEqual(await page.evaluate(() => window.mouse), ['mousedown 200,100', 'mouseup 200,100']);
+  // A swipe over the game, a touch on a button and a long hold send no click.
+  await send('touchStart', [{ x: 200, y: 100, id: 1 }]);
+  await send('touchMove', [{ x: 200, y: 160, id: 1 }]);
+  await send('touchEnd', []);
+  await send('touchStart', [{ ...(await centre(32)), id: 1 }]);
+  await send('touchEnd', []);
+  await send('touchStart', [{ x: 200, y: 100, id: 1 }]);
+  await new Promise(r => setTimeout(r, 700));
+  await send('touchEnd', []);
+  await new Promise(r => setTimeout(r, 250));
+  assert.equal(await page.evaluate(() => window.mouse.length), 2);
+  assert.deepEqual(await page.evaluate(() => window.keys), ['32 down', '32 up']);
+  assert.deepEqual(page.errors, []);
+  await page.close();
+});
+
+test('touch mode: without tapClicks, a tap on the game sends no click', async () => {
+  const page = await openPage('', KnownDevices['iPhone 13']);
+  const { send } = await touchAt(page);
+  await send('touchStart', [{ x: 200, y: 60, id: 1 }]);
+  await send('touchEnd', []);
+  await new Promise(r => setTimeout(r, 250));
+  assert.deepEqual(await page.evaluate(() => window.mouse), []);
   await page.close();
 });

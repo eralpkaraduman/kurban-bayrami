@@ -9,6 +9,7 @@
     WEB_TITLE          page title
     WEB_TOUCH_DPAD     D-pad keys, e.g. { left: 263, right: 262 }
     WEB_TOUCH_BUTTONS  round buttons, e.g. [{ label: 'X', caption: 'Jump', key: 88 }]
+    WEB_TOUCH_TAP_CLICKS  optional: ON makes a tap on the game a mouse click
   Key codes are raylib's. The game must export flx_touch_key(key, down).
 -->
 <html lang="en">
@@ -46,6 +47,7 @@
     frame: document.getElementById('frame'),
     dpad: @WEB_TOUCH_DPAD@,
     buttons: @WEB_TOUCH_BUTTONS@,
+    tapClicks: '@WEB_TOUCH_TAP_CLICKS@' === 'ON',
     onKey: function (key, down) {
       if (Module._flx_touch_key) Module._flx_touch_key(key, down ? 1 : 0);
     },

@@ -134,6 +134,10 @@
   border-radius: 50%;
 }
 .tc-round:nth-child(odd) { margin-top: calc(var(--tc-round) * 0.6); }
+/* Three or more buttons, set by touch-controls.js: smaller and closer, so a
+   full D-pad and three buttons fit side by side on a 360 px wide phone. */
+.tc-actions-many { gap: 10px; --tc-round: clamp(44px, 14vmin, 60px); }
+.tc-actions-many .tc-round .tc-label { font-size: 16px; }
 .tc-round .tc-label { font-size: 20px; }
 .tc-round .tc-caption {
   margin-top: 3px;

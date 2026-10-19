@@ -10,6 +10,7 @@
 //     dpad: { left: 263, right: 262, up: 265, down: 264 },  // key codes; leave a direction out to hide it
 //     buttons: [ { label: 'X', caption: 'Jump', key: 88 }, ... ],
 //     onKey: function (key, down) { ... },       // called when a button goes down or up
+//     tapClicks: true,                           // optional: a tap on the game is a mouse click
 //   });
 //   var Module = { canvas: canvas, postRun: [controls.fit] };  // fit once the game has sized its canvas
 //
@@ -58,6 +59,9 @@
       if (dpadKeys[dir] != null) addButton(dpad, 'tc-' + dir, dpadKeys[dir], arrows[dir], dir);
     });
     var actions = el('div', 'tc-actions', bar);
+    // Three or more round buttons are made smaller, so they fit beside a
+    // full D-pad on a phone.
+    if ((options.buttons || []).length > 2) actions.classList.add('tc-actions-many');
     (options.buttons || []).forEach(function (b) {
       addButton(actions, 'tc-round', b.key, b.label, b.caption);
     });
@@ -205,6 +209,53 @@
     canvas.style.height = (cssW * h / w) + 'px';
   }
 
+  // A tap on the canvas reaches the game as a left click, for games that
+  // read the mouse, like a title screen button or "click to go on". The game
+  // never sees the touch itself, so a swipe still scrolls an embedded page.
+  // Only a short touch that stays in place counts. The click goes to the
+  // canvas as mouse events at the tap's position: a move and a press when the
+  // finger lifts, then the release a little later, so the game sees the press
+  // in at least one frame.
+  var TAP_SLOP = 10;        // px a tap may move
+  var TAP_MAX_MS = 500;     // longer is a hold, not a tap
+  var CLICK_MS = 100;       // press to release
+
+  function forwardTaps(frame, canvas) {
+    var start = null;
+    function send(type, x, y) {
+      canvas.dispatchEvent(new MouseEvent(type, {
+        bubbles: true, cancelable: true, view: window, clientX: x, clientY: y,
+        screenX: x, screenY: y, button: 0, buttons: type === 'mouseup' ? 0 : 1,
+      }));
+    }
+    function moved(t) {
+      return Math.abs(t.clientX - start.x) > TAP_SLOP || Math.abs(t.clientY - start.y) > TAP_SLOP;
+    }
+    var listen = function (type, handler, passive) {
+      frame.addEventListener(type, function (e) {
+        if (e.target === canvas) handler(e);
+      }, { capture: true, passive: passive });
+    };
+    listen('touchstart', function (e) {
+      var t = e.touches[0];
+      start = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, time: Date.now() } : null;
+    }, true);
+    listen('touchmove', function (e) {
+      if (start && (e.touches.length > 1 || moved(e.touches[0]))) start = null;
+    }, true);
+    listen('touchcancel', function () { start = null; }, true);
+    listen('touchend', function (e) {
+      var t = e.changedTouches[0];
+      var tap = start && e.touches.length === 0 && !moved(t) && Date.now() - start.time <= TAP_MAX_MS;
+      start = null;
+      if (!tap) return;
+      e.preventDefault(); // no second click made up by the browser
+      send('mousemove', t.clientX, t.clientY);
+      send('mousedown', t.clientX, t.clientY);
+      setTimeout(function () { send('mouseup', t.clientX, t.clientY); }, CLICK_MS);
+    }, false);
+  }
+
   function setup(options) {
     var bar = null;
     if (shouldShow()) {
@@ -218,6 +269,7 @@
           if (e.target === options.canvas) e.stopPropagation();
         }, { capture: true, passive: true });
       });
+      if (options.tapClicks) forwardTaps(options.frame, options.canvas);
     }
     var refit = function () { fit(options.canvas, bar); };
     window.addEventListener('resize', refit);

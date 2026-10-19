@@ -26,10 +26,12 @@ With a keyboard, the bar stays hidden. Add `?touch=1` to the address to test the
 
 The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard. A gamepad feeds it too, through `gamepad_poll()` in the same file. The D-pad or left stick is the arrows, the bottom face button is X, and the left face button is C.
 
+A game with three or more round buttons gets smaller ones, so they fit beside a full D-pad on a 360 px wide phone. A game that reads the mouse can set `WEB_TOUCH_TAP_CLICKS` to `ON`. A short tap on the game then reaches it as a left click. A swipe still scrolls an embedded page. Kurban leaves it off.
+
 Both pages are templates. CMake fills in each placeholder, a name between two at signs, from variables set in `CMakeLists.txt`: the title, tagline, colours, game shape and touch keys. The cover page's text comes from `web/site-content.html`.
 
-Time Escape uses the same templates and controls. On every configure, its CMake file downloads `shell.html.in`, `site.html.in` and the two `touch-controls` files from this repo's `main` branch.
-A change pushed here reaches Time Escape on its next configure, so test both games after changing these files.
+Time Escape and Rockmorse use the same templates and controls. On every configure, their CMake files download `shell.html.in`, `site.html.in` and the two `touch-controls` files from this repo's `main` branch.
+A change pushed here reaches them on their next configure, so test all three games after changing these files.
 
 ## Build
 
@@ -98,10 +100,10 @@ npm test
 ```
 
 - `templates.test.mjs` fills both templates through CMake's `configure_file`, as the game builds do, and checks that every value lands in the right place.
-- `touch-controls.test.mjs` renders the game page with a stub in place of the game, then drives it in headless Chrome. It checks keyboard and touch layouts, the configured buttons, presses, two fingers at once, sliding between buttons, release on focus loss, and that double-tap does not zoom.
+- `touch-controls.test.mjs` renders the game page with a stub in place of the game, then drives it in headless Chrome. It checks keyboard and touch layouts, the configured buttons, presses, two fingers at once, sliding between buttons, release on focus loss, and that double-tap does not zoom. It also checks that three buttons and a full D-pad fit on a 360 px wide phone, and that taps become clicks only when a game asks for it.
 
 Set `CHROME_PATH` if Chrome is not in the default macOS location.
-Run these tests after changing `web/`, since Time Escape takes these files from this repo's `main` branch.
+Run these tests after changing `web/`, since Time Escape and Rockmorse take these files from this repo's `main` branch.
 
 ## Code checks
 
