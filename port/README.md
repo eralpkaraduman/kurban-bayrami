@@ -20,13 +20,13 @@ Arrow keys move, and X jumps. Press C near a sheep to pick it up, and press C ag
 
 ## Web page and touch controls
 
-On a touch screen, a control bar sits under the game: a D-pad, X to jump and C to carry.
+On a touch screen, a control bar sits under the game: a thumb stick for the arrows, X to jump and C to carry.
 The game fills the screen width, and the page never zooms or scrolls.
 With a keyboard, the bar stays hidden. Add `?touch=1` to the address to test the touch layout on a desktop.
 
 The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as the keyboard. A gamepad feeds it too, through `gamepad_poll()` in the same file. The D-pad or left stick is the arrows, the bottom face button is X, and the left face button is C.
 
-A game with three or more round buttons gets smaller ones, so they fit beside a full D-pad on a 360 px wide phone. A game that reads the mouse can set `WEB_TOUCH_TAP_CLICKS` to `ON`. A short tap on the game then reaches it as a left click. A swipe still scrolls an embedded page. Kurban leaves it off. A game with four directions can set `WEB_TOUCH_STICK` to `ON`. A thumb stick then replaces the arrows. It sends the same arrow keys, two at once on a diagonal. Kurban leaves it off.
+A game with three or more round buttons gets smaller ones, so they fit beside a full D-pad on a 360 px wide phone. A game that reads the mouse can set `WEB_TOUCH_TAP_CLICKS` to `ON`. A short tap on the game then reaches it as a left click. A swipe still scrolls an embedded page. Kurban leaves it off. A game with up or down gets a thumb stick in place of the arrows. It sends the same arrow keys, two at once on a diagonal. `WEB_TOUCH_STICK OFF` keeps the arrow buttons. A game with only left and right always gets two arrow buttons.
 
 The game page shows a loading bar while the game's data downloads. raylib cancels mouse wheel events on the game, so the page keeps them away from it. The wheel over an embedded game then scrolls the page around it. None of the three games reads the wheel.
 
@@ -102,7 +102,7 @@ npm test
 ```
 
 - `templates.test.mjs` fills both templates through CMake's `configure_file`, as the game builds do, and checks that every value lands in the right place.
-- `touch-controls.test.mjs` renders the game page with a stub in place of the game, then drives it in headless Chrome. It checks keyboard and touch layouts, the configured buttons, presses, two fingers at once, sliding between buttons, release on focus loss, and that double-tap does not zoom. It also checks that three buttons and a full D-pad fit on a 360 px wide phone, and that taps become clicks only when a game asks for it.
+- `touch-controls.test.mjs` renders the game page with a stub in place of the game, then drives it in headless Chrome. It checks keyboard and touch layouts, the configured buttons, presses, two fingers at once, sliding between buttons, release on focus loss, and that double-tap does not zoom. It checks the thumb stick's keys in each direction, and that three buttons and the stick fit on a 360 px wide phone, and that taps become clicks only when a game asks for it.
 
 Set `CHROME_PATH` if Chrome is not in the default macOS location.
 Run these tests after changing `web/`, since Time Escape and Rockmorse take these files from this repo's `main` branch.

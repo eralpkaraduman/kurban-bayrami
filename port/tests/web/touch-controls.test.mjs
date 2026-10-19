@@ -44,6 +44,7 @@ before(async () => {
     WEB_TITLE: 'Test Game',
     WEB_TOUCH_DPAD: '{ up: 265, down: 264, left: 263, right: 262 }',
     WEB_TOUCH_BUTTONS: "[{ label: 'X', caption: 'Jump', key: 88 }, { label: 'C', caption: 'Carry', key: 67 }]",
+    WEB_TOUCH_STICK: 'OFF',
   }, dir);
   writeFileSync(join(dir, 'index.html'), readFileSync(shell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
   // A second page with only left and right, to check the one-row D-pad.
@@ -53,13 +54,12 @@ before(async () => {
     WEB_TOUCH_BUTTONS: "[{ label: 'X', caption: 'Jump', key: 88 }]",
   }, tempDir());
   writeFileSync(join(dir, 'row.html'), readFileSync(rowShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
-  // A 3:2 game with a thumb stick, three buttons, and taps as clicks, like Rockmorse.
+  // A 3:2 game with the default thumb stick, three buttons, and taps as clicks, like Rockmorse.
   const tapShell = render('shell.html.in', {
     WEB_TITLE: 'Tap Game',
     WEB_TOUCH_DPAD: '{ up: 265, down: 264, left: 263, right: 262 }',
     WEB_TOUCH_BUTTONS: "[{ label: 'Space', caption: 'Pull', key: 32 }, { label: 'M', caption: 'Map', key: 77 }, { label: 'H', caption: 'Help', key: 72 }]",
     WEB_TOUCH_TAP_CLICKS: 'ON',
-    WEB_TOUCH_STICK: 'ON',
   }, tempDir());
   writeFileSync(join(dir, 'tap.html'), readFileSync(tapShell, 'utf8').replace('{{{ SCRIPT }}}', GAME_STUB));
   // A parent page with the game in a frame and text below, like the cover page.
@@ -311,7 +311,7 @@ test('touch mode: the thumb stick sends one or two arrow keys, and a button work
   await page.close();
 });
 
-test('touch mode: three buttons and a full D-pad fit on a 360 px wide phone', async () => {
+test('touch mode: three buttons and the thumb stick fit on a 360 px wide phone', async () => {
   for (const width of [360, 390]) {
     const page = await openPage('tap.html?game=660x440', { ...KnownDevices['iPhone 13'], viewport: { ...KnownDevices['iPhone 13'].viewport, width } });
     const right = await page.$$eval('.tc-button', b => Math.max(...b.map(e => e.getBoundingClientRect().right)));
