@@ -28,6 +28,8 @@ The bar calls `flx_touch_key()` in `src/flx.c`, which feeds the same input as th
 
 A game with three or more round buttons gets smaller ones, so they fit beside a full D-pad on a 360 px wide phone. A game that reads the mouse can set `WEB_TOUCH_TAP_CLICKS` to `ON`. A short tap on the game then reaches it as a left click. A swipe still scrolls an embedded page. Kurban leaves it off.
 
+The game page shows a loading bar while the game's data downloads. raylib cancels mouse wheel events on the game, so the page keeps them away from it. The wheel over an embedded game then scrolls the page around it. None of the three games reads the wheel.
+
 Both pages are templates. CMake fills in each placeholder, a name between two at signs, from variables set in `CMakeLists.txt`: the title, tagline, colours, game shape and touch keys. The cover page's text comes from `web/site-content.html`.
 
 Time Escape and Rockmorse use the same templates and controls. On every configure, their CMake files download `shell.html.in`, `site.html.in` and the two `touch-controls` files from this repo's `main` branch.

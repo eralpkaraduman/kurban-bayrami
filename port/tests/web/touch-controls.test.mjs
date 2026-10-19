@@ -15,8 +15,8 @@ const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Conte
 // A stand-in for the Emscripten game: it sizes the canvas to the game's
 // resolution, 360x120 unless ?game=WxH says otherwise, records every key the
 // touch bar sends and every mouse press and release on the canvas, runs the
-// page's postRun hook, and cancels touches on the canvas, as the real raylib
-// game does.
+// page's postRun hook, and cancels touches and mouse wheel events on the
+// canvas, as the real raylib game does.
 const GAME_STUB = `<script>
   window.keys = [];
   window.mouse = [];
@@ -32,6 +32,8 @@ const GAME_STUB = `<script>
   ['touchstart', 'touchmove', 'touchend'].forEach(function (type) {
     canvas.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
   });
+  // Like Emscripten's GLFW, cancel every wheel event on the canvas.
+  canvas.addEventListener('wheel', function (e) { e.preventDefault(); }, { passive: false, capture: true });
 </script>`;
 
 let server, browser, baseUrl;
@@ -315,5 +317,26 @@ test('touch mode: without tapClicks, a tap on the game sends no click', async ()
   await send('touchEnd', []);
   await new Promise(r => setTimeout(r, 250));
   assert.deepEqual(await page.evaluate(() => window.mouse), []);
+  await page.close();
+});
+
+test('keyboard mode, embedded: the mouse wheel over the game scrolls the outer page', async () => {
+  const page = await openPage('embed.html');
+  await page.mouse.move(300, 150);
+  for (let i = 0; i < 3; i++) await page.mouse.wheel({ deltaY: 200 });
+  await page.waitForFunction(() => window.scrollY > 0, { timeout: 2000 });
+  assert.deepEqual(page.errors, []);
+  await page.close();
+});
+
+test('the loading bar shows the download, and hides once the game runs', async () => {
+  const page = await openPage('');
+  // The stub has run postRun, as a started game does.
+  assert.equal(await page.$eval('#loading', el => el.hidden), true);
+  await page.evaluate(() => Module.setStatus('Downloading data... (1048576/4194304)'));
+  assert.equal(await page.$eval('#loading-text', el => el.textContent), 'Loading 1.0 / 4.0 MB');
+  assert.equal(await page.$eval('#loading-bar', el => el.style.width), '25%');
+  assert.equal(await page.$eval('#loading', el => el.getAttribute('aria-valuenow')), '25');
+  assert.deepEqual(page.errors, []);
   await page.close();
 });

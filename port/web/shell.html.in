@@ -31,11 +31,20 @@
   #frame { display: flex; flex-direction: column; align-items: center; }
   /* Scale up without smoothing so the pixel art stays sharp on any screen. */
   canvas { display: block; image-rendering: pixelated; outline: none; }
+  /* The download bar, shown until the game starts. */
+  #loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(240px, 60vw);
+             color: #aaa; font: 13px/1.4 ui-monospace, monospace; text-align: center; }
+  #loading-track { height: 6px; margin-top: 8px; border: 1px solid #666; }
+  #loading-bar { width: 0; height: 100%; background: #ddd; }
 </style>
 </head>
 <body>
 <div id="frame">
   <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+</div>
+<div id="loading" role="progressbar" aria-label="Loading the game">
+  <div id="loading-text">Loading</div>
+  <div id="loading-track"><div id="loading-bar"></div></div>
 </div>
 <script src="touch-controls.js"></script>
 <script>
@@ -52,11 +61,30 @@
       if (Module._flx_touch_key) Module._flx_touch_key(key, down ? 1 : 0);
     },
   });
-  var Module = { canvas: canvas, postRun: [controls.fit] };
+  // Emscripten reports the data download as "Downloading data... (done/total)"
+  // in bytes, and an empty status once the game runs.
+  var loading = document.getElementById('loading');
+  function hideLoading() { loading.hidden = true; }
+  function setStatus(text) {
+    var m = /\((\d+)\/(\d+)\)/.exec(text);
+    if (m && text.indexOf('Downloading') === 0) {
+      var done = +m[1], total = +m[2], mb = function (n) { return (n / 1048576).toFixed(1); };
+      document.getElementById('loading-bar').style.width = (100 * done / total) + '%';
+      document.getElementById('loading-text').textContent = 'Loading ' + mb(done) + ' / ' + mb(total) + ' MB';
+      loading.setAttribute('aria-valuenow', Math.round(100 * done / total));
+    } else if (!text) {
+      hideLoading();
+    }
+  }
+  var Module = { canvas: canvas, setStatus: setStatus, postRun: [controls.fit, hideLoading] };
 
   // itch.io embeds the game in an iframe. Keyboard input needs focus there.
   window.addEventListener('load', function () { window.focus(); canvas.focus(); });
   canvas.addEventListener('mousedown', function () { window.focus(); canvas.focus(); });
+  // raylib cancels mouse wheel events on the canvas, so a page with the
+  // game embedded could not scroll while the pointer is over the game. No
+  // game here reads the wheel, so keep those events away from raylib.
+  window.addEventListener('wheel', function (e) { e.stopPropagation(); }, { capture: true, passive: true });
   // Keep arrow keys and space from scrolling the itch.io page.
   window.addEventListener('keydown', function (e) {
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].indexOf(e.key) >= 0) e.preventDefault();
